@@ -6,72 +6,102 @@
     <title>Тест API перекладу</title>
     <style>
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: Arial, sans-serif;
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
         }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
         button {
-            padding: 10px 15px;
-            background-color: #4a76a8;
+            padding: 10px 20px;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            margin-top: 10px;
         }
-        #result {
-            margin-top: 20px;
-            padding: 15px;
-            border: 1px solid #ddd;
+        button:hover {
+            background-color: #45a049;
+        }
+        .result {
+            padding: 10px;
+            border: 1px solid #ccc;
             border-radius: 4px;
+            min-height: 100px;
             background-color: #f9f9f9;
         }
-        .note {
-            margin-top: 20px;
-            padding: 10px;
-            background-color: #fff3cd;
-            border-left: 4px solid #ffc107;
-            color: #856404;
+        .error {
+            color: red;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
     <h1>Тест API перекладу</h1>
-    <p>Натисніть кнопку, щоб перевірити роботу API перекладу</p>
-    
-    <button id="test-btn">Перекласти "Hello world"</button>
-    
-    <div id="result">Результат буде тут...</div>
-    
-    <div class="note">
-        <p><strong>Примітка:</strong> Сервер тепер працює на порту 3001. Переконайтеся, що ви відкрили сторінку за адресою http://localhost:3001/test-api.html</p>
+    <div class="container">
+        <div>
+            <h2>Введіть текст для перекладу:</h2>
+            <textarea id="text-to-translate">Hello world! This is a test.</textarea>
+        </div>
+        <button id="translate-btn">Перекласти</button>
+        <div>
+            <h2>Результат перекладу:</h2>
+            <div id="translation-result" class="result"></div>
+        </div>
     </div>
-    
+
     <script>
-        document.getElementById('test-btn').addEventListener('click', async () => {
-            const resultDiv = document.getElementById('result');
-            resultDiv.textContent = 'Перекладаємо...';
-            
-            try {
-                const response = await fetch('/api/translate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ text: 'Hello world' })
-                });
+        document.addEventListener('DOMContentLoaded', () => {
+            const textToTranslate = document.getElementById('text-to-translate');
+            const translateBtn = document.getElementById('translate-btn');
+            const translationResult = document.getElementById('translation-result');
+
+            translateBtn.addEventListener('click', async () => {
+                const text = textToTranslate.value.trim();
                 
-                if (!response.ok) {
-                    throw new Error(`Помилка: ${response.status}`);
+                if (!text) {
+                    translationResult.innerHTML = '<span class="error">Введіть текст для перекладу</span>';
+                    return;
                 }
+
+                translationResult.textContent = 'Перекладаємо...';
                 
-                const data = await response.json();
-                resultDiv.textContent = `Оригінал: "Hello world"\nПереклад: "${data.translation}"`;
-            } catch (error) {
-                resultDiv.textContent = `Помилка: ${error.message}`;
-                console.error('Помилка при перекладі:', error);
-            }
+                try {
+                    const response = await fetch('/api/translate', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP помилка: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+
+                    translationResult.textContent = data.translation;
+                } catch (error) {
+                    console.error('Помилка при перекладі:', error);
+                    translationResult.innerHTML = `<span class="error">Помилка при перекладі: ${error.message}</span>`;
+                }
+            });
         });
     </script>
 </body>

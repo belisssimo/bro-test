@@ -21,17 +21,14 @@ module.exports = async (req, res) => {
   }
 
   try {
-    const { text, sourceLang = 'auto', targetWord } = req.body;
+    // Жорстко закодований API ключ DeepL
+    const API_KEY = 'd27873ef-f9fd-4536-9aaa-c64d3b497b08:fx';
+    
+    // Перевіряємо тіло запиту
+    const { text, sourceLang = 'auto', targetWord } = req.body || {};
     
     if (!text) {
       return res.status(400).json({ error: 'Текст для перекладу не надано' });
-    }
-
-    // API ключ DeepL
-    const DEEPL_API_KEY = process.env.DEEPL_API_KEY;
-    
-    if (!DEEPL_API_KEY) {
-      return res.status(500).json({ error: 'API ключ DeepL не налаштовано' });
     }
 
     // Створюємо об'єкт для запиту до DeepL API
@@ -50,7 +47,7 @@ module.exports = async (req, res) => {
       requestData,
       {
         headers: {
-          'Authorization': `DeepL-Auth-Key ${DEEPL_API_KEY}`,
+          'Authorization': `DeepL-Auth-Key ${API_KEY}`,
           'Content-Type': 'application/json'
         }
       }
@@ -71,10 +68,9 @@ module.exports = async (req, res) => {
     // Звичайний переклад без контексту
     res.json({ translation: response.data.translations[0].text });
   } catch (error) {
-    console.error('Помилка при перекладі:', error.response?.data || error.message);
     res.status(500).json({ 
       error: 'Помилка при перекладі', 
-      details: error.response?.data || error.message 
+      details: error.response?.data || error.message
     });
   }
 }; 

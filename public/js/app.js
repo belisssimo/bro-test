@@ -184,6 +184,11 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             const wordData = await wordResponse.json();
+            
+            if (wordData.error) {
+                throw new Error(wordData.error);
+            }
+            
             const translation = wordData.translation;
             
             // Зберігаємо переклад у кеш
@@ -207,7 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         targetWord: textToTranslate
                     })
                 })
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Помилка при перекладі контексту');
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     // Кешуємо переклади сусідніх слів
                     if (data.contextTranslations) {
