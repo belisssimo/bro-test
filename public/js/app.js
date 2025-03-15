@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentViewer = document.getElementById('content-viewer');
     const loadingIndicator = document.getElementById('loading-indicator');
 
+    // Визначаємо базовий URL API
+    const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        ? '' // Порожній рядок для локального середовища (відносний шлях)
+        : 'https://bro-test.vercel.app'; // URL вашого додатка на Vercel
+
     // Кеш перекладів
     let translationsCache = {};
     
@@ -171,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             // Спочатку перекладаємо саме слово/фразу окремо для точності
-            const wordResponse = await fetch('/api/translate', {
+            const wordResponse = await fetch(`${API_BASE_URL}/api/translate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -197,22 +202,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (beforeContext || afterContext) {
                 const fullContext = (beforeContext + ' ' + textToTranslate + ' ' + afterContext).trim();
                 
-                fetch('/api/translate', {
+                fetch(`${API_BASE_URL}/api/translate`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ text: fullContext })
+                    body: JSON.stringify({ 
+                        text: fullContext,
+                        targetWord: textToTranslate
+                    })
                 })
                 .then(response => response.json())
                 .then(data => {
-                    // Тут можна додатково обробити контекстний переклад,
-                    // наприклад, для кешування сусідніх слів
-                    console.log('Контекстний переклад завершено');
+                    // Кешуємо переклади сусідніх слів
+                    if (data.contextTranslations) {
+                        Object.assign(translationsCache, data.contextTranslations);
+                        localStorage.setItem('translationsCache', JSON.stringify(translationsCache));
+                    }
                 })
-                .catch(error => {
-                    console.error('Помилка при контекстному перекладі:', error);
-                });
+                .catch(error => console.error('Помилка при перекладі контексту:', error));
             }
         } catch (error) {
             console.error('Помилка при перекладі:', error);

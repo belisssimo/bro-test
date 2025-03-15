@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Маршрут для перекладу тексту
 app.post('/api/translate', async (req, res) => {
   try {
-    const { text, sourceLang = 'auto' } = req.body;
+    const { text, sourceLang = 'auto', targetWord } = req.body;
     
     if (!text) {
       return res.status(400).json({ error: 'Текст для перекладу не надано' });
@@ -48,6 +48,19 @@ app.post('/api/translate', async (req, res) => {
       }
     );
 
+    // Якщо це запит з контекстом і цільовим словом
+    if (targetWord && text.includes(targetWord)) {
+      // Отримуємо переклад всього контексту
+      const translatedText = response.data.translations[0].text;
+      
+      // Повертаємо переклад з додатковою інформацією для контексту
+      return res.json({ 
+        translation: translatedText,
+        contextTranslations: {} // Тут можна додати логіку для витягування перекладів окремих слів з контексту
+      });
+    }
+
+    // Звичайний переклад без контексту
     res.json({ translation: response.data.translations[0].text });
   } catch (error) {
     console.error('Помилка при перекладі:', error.response?.data || error.message);
