@@ -170,16 +170,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingIndicator.style.display = 'flex';
         
         try {
-            // Використовуємо пряме звернення до DeepL API для перекладу
-            const response = await fetch('https://api-free.deepl.com/v2/translate', {
+            // Використовуємо наш проксі-сервер для перекладу
+            const response = await fetch('/api/translate', {
                 method: 'POST',
                 headers: {
-                    'Authorization': 'DeepL-Auth-Key d27873ef-f9fd-4536-9aaa-c64d3b497b08:fx',
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    text: [textToTranslate],
-                    target_lang: 'UK'
+                    text: textToTranslate
                 })
             });
             
@@ -201,15 +199,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (beforeContext || afterContext) {
                 const fullContext = (beforeContext + ' ' + textToTranslate + ' ' + afterContext).trim();
                 
-                fetch('https://api-free.deepl.com/v2/translate', {
+                fetch('/api/translate', {
                     method: 'POST',
                     headers: {
-                        'Authorization': 'DeepL-Auth-Key d27873ef-f9fd-4536-9aaa-c64d3b497b08:fx',
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        text: [fullContext],
-                        target_lang: 'UK'
+                        text: fullContext,
+                        targetWord: textToTranslate
                     })
                 })
                 .then(response => {
