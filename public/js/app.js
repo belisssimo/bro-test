@@ -170,26 +170,25 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingIndicator.style.display = 'flex';
         
         try {
-            // Спочатку перекладаємо саме слово/фразу окремо для точності
-            const wordResponse = await fetch('/api/translate', {
+            // Використовуємо пряме звернення до DeepL API для перекладу
+            const response = await fetch('https://api-free.deepl.com/v2/translate', {
                 method: 'POST',
                 headers: {
+                    'Authorization': 'DeepL-Auth-Key d27873ef-f9fd-4536-9aaa-c64d3b497b08:fx',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ text: textToTranslate })
+                body: JSON.stringify({
+                    text: [textToTranslate],
+                    target_lang: 'UK'
+                })
             });
             
-            if (!wordResponse.ok) {
+            if (!response.ok) {
                 throw new Error('Помилка при перекладі');
             }
             
-            const wordData = await wordResponse.json();
-            
-            if (wordData.error) {
-                throw new Error(wordData.error);
-            }
-            
-            const translation = wordData.translation;
+            const data = await response.json();
+            const translation = data.translations[0].text;
             
             // Зберігаємо переклад у кеш
             translationsCache[textToTranslate] = translation;
@@ -202,14 +201,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (beforeContext || afterContext) {
                 const fullContext = (beforeContext + ' ' + textToTranslate + ' ' + afterContext).trim();
                 
-                fetch('/api/translate', {
+                fetch('https://api-free.deepl.com/v2/translate', {
                     method: 'POST',
                     headers: {
+                        'Authorization': 'DeepL-Auth-Key d27873ef-f9fd-4536-9aaa-c64d3b497b08:fx',
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ 
-                        text: fullContext,
-                        targetWord: textToTranslate
+                    body: JSON.stringify({
+                        text: [fullContext],
+                        target_lang: 'UK'
                     })
                 })
                 .then(response => {
@@ -219,11 +219,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     return response.json();
                 })
                 .then(data => {
-                    // Кешуємо переклади сусідніх слів
-                    if (data.contextTranslations) {
-                        Object.assign(translationsCache, data.contextTranslations);
-                        localStorage.setItem('translationsCache', JSON.stringify(translationsCache));
-                    }
+                    // Тут можна додати логіку для кешування перекладів сусідніх слів
+                    console.log('Контекстний переклад:', data.translations[0].text);
                 })
                 .catch(error => console.error('Помилка при перекладі контексту:', error));
             }
