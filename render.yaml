@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: cursor-translate
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: DEEPL_API_KEY
+        value: d27873ef-f9fd-4536-9aaa-c64d3b497b08:fx 

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест маркерів перекладу</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4a76a8;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+        .note {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест маркерів перекладу</h1>
+    <p>Натисніть кнопку, щоб перевірити, чи зберігаються маркери в перекладеному тексті</p>
+    
+    <button id="test-btn">Перекласти текст з маркерами</button>
+    
+    <div id="result">Результат буде тут...</div>
+    
+    <div class="note">
+        <p><strong>Примітка:</strong> Цей тест перевіряє, чи зберігає DeepL API маркери в перекладеному тексті.</p>
+    </div>
+    
+    <script>
+        document.getElementById('test-btn').addEventListener('click', async () => {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = 'Перекладаємо...';
+            
+            const testText = 'This is a test <<< word >>> for translation';
+            
+            try {
+                const response = await fetch('/api/translate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: testText })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Помилка: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                // Перевіряємо, чи зберігаються маркери
+                const hasMarkers = data.translation.includes('<<<') && data.translation.includes('>>>');
+                
+                resultDiv.textContent = `Оригінал: "${testText}"\n\nПереклад: "${data.translation}"\n\nМаркери збережено: ${hasMarkers ? 'Так' : 'Ні'}`;
+                
+                // Спробуємо витягнути текст між маркерами
+                if (hasMarkers) {
+                    const markerRegex = /<<<\s*(.*?)\s*>>>/;
+                    const match = data.translation.match(markerRegex);
+                    
+                    if (match && match[1]) {
+                        resultDiv.textContent += `\n\nТекст між маркерами: "${match[1].trim()}"`;
+                    } else {
+                        resultDiv.textContent += '\n\nНе вдалося витягнути текст між маркерами';
+                    }
+                }
+            } catch (error) {
+                resultDiv.textContent = `Помилка: ${error.message}`;
+                console.error('Помилка при перекладі:', error);
+            }
+        });
+    </script>
+</body>
+</html> 
