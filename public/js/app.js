@@ -213,16 +213,50 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Функція відображення перекладу в оверлеї
     function showTranslation(originalText, translation) {
-        translationContent.innerHTML = `
-            <div class="original-text">
-                <h4>Оригінальний текст:</h4>
-                <p>${originalText}</p>
-            </div>
-            <div class="translated-text">
-                <h4>Переклад:</h4>
-                <p>${translation}</p>
-            </div>
-        `;
+        // Перевіряємо, чи текст містить кілька слів
+        if (originalText.includes(' ')) {
+            // Розбиваємо на слова
+            const originalWords = originalText.split(/\s+/);
+            const translatedWords = translation.split(/\s+/);
+            
+            // Створюємо таблицю для відображення перекладу кожного слова
+            let tableContent = '<table class="translation-table"><thead><tr><th>Оригінал</th><th>Переклад</th></tr></thead><tbody>';
+            
+            // Додаємо рядки для кожного слова
+            const minLength = Math.min(originalWords.length, translatedWords.length);
+            for (let i = 0; i < minLength; i++) {
+                tableContent += `<tr><td>${originalWords[i]}</td><td>${translatedWords[i]}</td></tr>`;
+            }
+            
+            tableContent += '</tbody></table>';
+            
+            translationContent.innerHTML = `
+                <div class="original-text">
+                    <h4>Оригінальний текст:</h4>
+                    <p>${originalText}</p>
+                </div>
+                <div class="translated-text">
+                    <h4>Переклад:</h4>
+                    <p>${translation}</p>
+                </div>
+                <div class="word-by-word">
+                    <h4>Переклад по словах:</h4>
+                    ${tableContent}
+                </div>
+            `;
+        } else {
+            // Для одного слова просто показуємо переклад
+            translationContent.innerHTML = `
+                <div class="original-text">
+                    <h4>Оригінальне слово:</h4>
+                    <p>${originalText}</p>
+                </div>
+                <div class="translated-text">
+                    <h4>Переклад:</h4>
+                    <p>${translation}</p>
+                </div>
+            `;
+        }
         
         translationOverlay.style.display = 'flex';
     }
@@ -335,7 +369,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // Отримуємо текст для перекладу
-        const textToTranslate = element.textContent;
+        let textToTranslate = element.textContent.trim();
+        
+        // Якщо текст містить кілька слів, беремо лише одне слово
+        if (textToTranslate.includes(' ')) {
+            const words = textToTranslate.split(/\s+/);
+            
+            // Визначаємо позицію кліку відносно елемента
+            const rect = element.getBoundingClientRect();
+            const clickX = event.clientX - rect.left;
+            const relativePosition = clickX / rect.width;
+            
+            // Вибираємо слово, на яке клікнули
+            const wordIndex = Math.floor(relativePosition * words.length);
+            textToTranslate = words[Math.min(wordIndex, words.length - 1)];
+        }
+        
+        // Видаляємо знаки пунктуації з початку і кінця слова
+        textToTranslate = textToTranslate.replace(/^[^\wа-яА-ЯіІїЇєЄґҐ']+|[^\wа-яА-ЯіІїЇєЄґҐ']+$/g, '');
+        
+        if (!textToTranslate) return;
         
         // Перевіряємо кеш перекладів
         if (translationsCache[textToTranslate]) {
@@ -385,10 +438,28 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функція застосування перекладу
     function applyTranslation(element, originalText, translation) {
         // Зберігаємо оригінальний текст
-        element.setAttribute('data-original', originalText);
+        element.setAttribute('data-original', element.textContent);
         
-        // Застосовуємо переклад
-        element.textContent = translation;
-        element.classList.add('translated');
+        // Якщо оригінальний текст є частиною тексту елемента, замінюємо лише це слово
+        const fullText = element.textContent;
+        if (fullText !== originalText && fullText.includes(originalText)) {
+            // Створюємо регулярний вираз для пошуку слова з урахуванням меж слова
+            const regex = new RegExp(`(^|\\s)(${originalText})($|\\s|[.,;:!?])`, 'g');
+            const newText = fullText.replace(regex, `$1<span class="translated" data-original="${originalText}">${translation}</span>$3`);
+            
+            // Створюємо тимчасовий елемент для перетворення HTML-рядка в DOM-елементи
+            const temp = document.createElement('div');
+            temp.innerHTML = newText;
+            
+            // Замінюємо вміст елемента
+            element.innerHTML = '';
+            while (temp.firstChild) {
+                element.appendChild(temp.firstChild);
+            }
+        } else {
+            // Застосовуємо переклад до всього елемента
+            element.textContent = translation;
+            element.classList.add('translated');
+        }
     }
 }); 

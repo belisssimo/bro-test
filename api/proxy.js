@@ -70,25 +70,67 @@ module.exports = async (req, res) => {
             });
           }
 
-          // Додаємо обробник подій для тексту
-          document.addEventListener('click', async function(event) {
-            // Перевіряємо, чи клікнуто на текстовий вузол
+          // Функція для обробки кліку на текст
+          function handleTextClick(event) {
+            // Перевіряємо, чи клікнуто на текстовий вузол або елемент, який не є інтерактивним
             if (event.target.nodeType === Node.TEXT_NODE || 
                 (event.target.nodeType === Node.ELEMENT_NODE && 
                  !['A', 'BUTTON', 'INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName))) {
               
-              // Отримуємо текст для перекладу
-              const text = event.target.textContent.trim();
+              // Отримуємо виділений текст
+              const selection = window.getSelection();
+              let text = '';
               
+              if (selection.rangeCount > 0 && !selection.isCollapsed) {
+                // Якщо є виділений текст, використовуємо його
+                text = selection.toString().trim();
+              } else {
+                // Якщо немає виділеного тексту, використовуємо текст елемента
+                // Але розбиваємо його на окремі слова
+                const fullText = event.target.textContent.trim();
+                const words = fullText.split(/\\s+/);
+                
+                // Знаходимо слово, на яке клікнули
+                const range = document.createRange();
+                range.selectNodeContents(event.target);
+                const rects = range.getClientRects();
+                
+                for (let i = 0; i < rects.length; i++) {
+                  const rect = rects[i];
+                  if (event.clientX >= rect.left && event.clientX <= rect.right &&
+                      event.clientY >= rect.top && event.clientY <= rect.bottom) {
+                    // Приблизно визначаємо слово за позицією кліку
+                    const clickPosition = (event.clientX - rect.left) / rect.width;
+                    const wordIndex = Math.floor(clickPosition * words.length);
+                    text = words[Math.min(wordIndex, words.length - 1)];
+                    break;
+                  }
+                }
+                
+                // Якщо не вдалося визначити слово, беремо перше
+                if (!text && words.length > 0) {
+                  text = words[0];
+                }
+              }
+              
+              // Перевіряємо, чи є текст для перекладу
               if (text) {
-                // Відправляємо повідомлення батьківському вікну
-                window.parent.postMessage({
-                  type: 'translate',
-                  text: text
-                }, '*');
+                // Видаляємо знаки пунктуації з початку і кінця слова
+                const cleanText = text.replace(/^[^\\wа-яА-ЯіІїЇєЄґҐ']+|[^\\wа-яА-ЯіІїЇєЄґҐ']+$/g, '');
+                
+                if (cleanText) {
+                  // Відправляємо повідомлення батьківському вікну
+                  window.parent.postMessage({
+                    type: 'translate',
+                    text: cleanText
+                  }, '*');
+                }
               }
             }
-          });
+          }
+
+          // Додаємо обробник подій для кліку
+          document.addEventListener('click', handleTextClick);
         </script>
       `;
       

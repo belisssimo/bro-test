@@ -293,6 +293,34 @@ footer {
     overflow-y: auto;
 }
 
+/* Стилі для таблиці перекладу */
+.translation-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+.translation-table th,
+.translation-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.translation-table th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+
+.translation-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.translation-table tr:hover {
+    background-color: #f0f0f0;
+}
+
 /* Індикатор завантаження */
 .loading-indicator {
     display: none;
