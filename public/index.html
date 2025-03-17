@@ -9,11 +9,32 @@
 <body>
     <header>
         <h1>HTML Перекладач</h1>
-        <p>Завантажте HTML-файл або введіть URL для перекладу тексту</p>
+        <p>Введіть URL для перекладу тексту на сторінці</p>
     </header>
 
     <main>
         <section class="upload-section">
+            <div class="url-input-container">
+                <h3>Введіть URL сторінки:</h3>
+                <div class="url-form">
+                    <input type="url" id="page-url" placeholder="https://example.com" class="url-input">
+                    <button id="load-url-btn" class="url-button">Завантажити</button>
+                </div>
+                <div class="options-container">
+                    <label class="option-label">
+                        <input type="checkbox" id="use-iframe" checked>
+                        Використовувати iframe (рекомендовано)
+                    </label>
+                    <div class="tooltip">
+                        <span class="tooltip-icon">?</span>
+                        <span class="tooltip-text">Iframe дозволяє відображати сторінки в оригінальному вигляді, але деякі сайти можуть блокувати відображення в iframe</span>
+                    </div>
+                </div>
+                <div class="test-file-link">
+                    <p>Або <a href="test.html" download>завантажте тестовий HTML-файл</a> для перевірки функціоналу</p>
+                </div>
+            </div>
+            
             <div class="file-upload-container">
                 <label for="html-file" class="file-upload-label">
                     <span>Оберіть HTML-файл</span>
@@ -21,25 +42,15 @@
                 </label>
                 <div id="file-name" class="file-name"></div>
             </div>
-            
-            <div class="url-input-container">
-                <h3>Або введіть URL сторінки:</h3>
-                <div class="url-form">
-                    <input type="url" id="page-url" placeholder="https://example.com" class="url-input">
-                    <button id="load-url-btn" class="url-button">Завантажити</button>
-                </div>
-                <div class="test-file-link">
-                    <p>Або <a href="test.html" download>завантажте тестовий HTML-файл</a> для перевірки функціоналу</p>
-                </div>
-            </div>
         </section>
 
         <section class="content-section">
             <div class="content-container">
                 <div id="content-placeholder" class="content-placeholder">
-                    <p>Завантажте HTML-файл або введіть URL для перегляду та перекладу</p>
+                    <p>Введіть URL або завантажте HTML-файл для перегляду та перекладу</p>
                 </div>
                 <div id="content-viewer" class="content-viewer"></div>
+                <iframe id="content-iframe" class="content-iframe" sandbox="allow-same-origin allow-scripts" style="display: none;"></iframe>
             </div>
         </section>
     </main>
@@ -51,7 +62,17 @@
 
     <div id="loading-indicator" class="loading-indicator">
         <div class="spinner"></div>
-        <p>Перекладаємо...</p>
+        <p>Завантажуємо сторінку...</p>
+    </div>
+
+    <div id="translation-overlay" class="translation-overlay">
+        <div class="translation-container">
+            <div class="translation-header">
+                <span>Переклад</span>
+                <button id="close-translation-btn" class="close-btn">&times;</button>
+            </div>
+            <div id="translation-content" class="translation-content"></div>
+        </div>
     </div>
 
     <script src="js/app.js"></script>
