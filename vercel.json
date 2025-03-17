@@ -6,6 +6,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/fetch-url.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "public/**/*",
       "use": "@vercel/static"
     }
@@ -14,6 +18,10 @@
     {
       "src": "/api/translate",
       "dest": "/api/translate.js"
+    },
+    {
+      "src": "/api/fetch-url",
+      "dest": "/api/fetch-url.js"
     },
     {
       "src": "/(.*)",

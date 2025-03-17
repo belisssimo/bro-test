@@ -9,7 +9,7 @@
 <body>
     <header>
         <h1>HTML Перекладач</h1>
-        <p>Завантажте HTML-файл та перекладайте текст натисканням</p>
+        <p>Завантажте HTML-файл або введіть URL для перекладу тексту</p>
     </header>
 
     <main>
@@ -20,6 +20,14 @@
                     <input type="file" id="html-file" accept=".html,.htm" class="file-input">
                 </label>
                 <div id="file-name" class="file-name"></div>
+            </div>
+            
+            <div class="url-input-container">
+                <h3>Або введіть URL сторінки:</h3>
+                <div class="url-form">
+                    <input type="url" id="page-url" placeholder="https://example.com" class="url-input">
+                    <button id="load-url-btn" class="url-button">Завантажити</button>
+                </div>
                 <div class="test-file-link">
                     <p>Або <a href="test.html" download>завантажте тестовий HTML-файл</a> для перевірки функціоналу</p>
                 </div>
@@ -29,7 +37,7 @@
         <section class="content-section">
             <div class="content-container">
                 <div id="content-placeholder" class="content-placeholder">
-                    <p>Завантажте HTML-файл для перегляду та перекладу</p>
+                    <p>Завантажте HTML-файл або введіть URL для перегляду та перекладу</p>
                 </div>
                 <div id="content-viewer" class="content-viewer"></div>
             </div>

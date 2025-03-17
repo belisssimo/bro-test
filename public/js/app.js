@@ -5,6 +5,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const contentPlaceholder = document.getElementById('content-placeholder');
     const contentViewer = document.getElementById('content-viewer');
     const loadingIndicator = document.getElementById('loading-indicator');
+    const pageUrlInput = document.getElementById('page-url');
+    const loadUrlBtn = document.getElementById('load-url-btn');
 
     // Кеш перекладів
     let translationsCache = {};
@@ -21,6 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Обробник події завантаження файлу
     fileInput.addEventListener('change', handleFileUpload);
+    
+    // Обробник події завантаження URL
+    loadUrlBtn.addEventListener('click', handleUrlLoad);
 
     // Функція обробки завантаження файлу
     function handleFileUpload(event) {
@@ -43,6 +48,61 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         
         reader.readAsText(file);
+    }
+    
+    // Функція обробки завантаження URL
+    async function handleUrlLoad() {
+        const url = pageUrlInput.value.trim();
+        
+        if (!url) {
+            alert('Будь ласка, введіть URL');
+            return;
+        }
+        
+        // Перевірка, чи URL є валідним
+        try {
+            new URL(url);
+        } catch (e) {
+            alert('Будь ласка, введіть валідний URL');
+            return;
+        }
+        
+        // Показуємо індикатор завантаження
+        loadingIndicator.style.display = 'flex';
+        loadingIndicator.querySelector('p').textContent = 'Завантажуємо сторінку...';
+        
+        try {
+            const response = await fetch('/api/fetch-url', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ url })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Помилка при завантаженні URL');
+            }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            
+            // Відображення HTML-вмісту
+            displayContent(data.html);
+            
+            // Відображення URL як імені файлу
+            fileName.textContent = url;
+        } catch (error) {
+            console.error('Помилка при завантаженні URL:', error);
+            alert('Помилка при завантаженні URL: ' + error.message);
+        } finally {
+            // Ховаємо індикатор завантаження
+            loadingIndicator.style.display = 'none';
+            loadingIndicator.querySelector('p').textContent = 'Перекладаємо...';
+        }
     }
 
     // Функція відображення HTML-вмісту
